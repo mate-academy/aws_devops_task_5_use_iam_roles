@@ -27,9 +27,9 @@ In this task you will deploy a new EC2 instance with Grafana, and connect Grafan
 To complete this task: 
 
 1. To make sure that you are not running out of free limits in your AWS account, make sure to clean-up resources, you deployed in the [previous task](https://github.com/mate-academy/aws_devops_task_4_deploy_virtual_machine). For that, navigate to the folder with task files on your computer, and run command: 
-```
-    terraform destroy
-```
+    ```
+        terraform destroy
+    ```
 
 2. Edit `terraform.tfvars` - fill out tfvars file with the outputs from the previous modules and your own configuration variables. You should use those variables as parameters for the resources in this task. This task requires only two variables - `subnet_id` and `security_group_id`, you can get if as terraform module output in the [previous task](https://github.com/mate-academy/aws_devops_task_3_configure_network). 
 
