@@ -1,4 +1,4 @@
-# AWS Essentials: Use IAM roles
+# AWS Essentials: Use IAM Roles
 
 What is Grafana's use if you are not connecting it to any data sources? In this task, we will connect your deployment to CloudWatch using the IAM role so you can visualize metrics from your AWS account in Grafana. 
 
@@ -36,15 +36,15 @@ To complete this task:
 
 3. Edit `main.tf` — add resources, required for this task: 
     
-    - use resource [aws_iam_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) to create a policy with permissions, necessary for Grafana to read metrics and logs from CloudWatch. You can find JSON definition of such policy in file `grafana-policy.json` in this repository.
+    - use [`aws_iam_policy`](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) resource to create a policy with permissions, necessary for Grafana to read metrics and logs from CloudWatch. You can find JSON definition of such policy in file `grafana-policy.json` in this repository.
 
-    - use resource [aws_iam_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) to create the IAM role for your Grafana instance. You can find the assume role policy definition in the file `grafana-role-asume-policy.json` in this repository. 
+    - use [`aws_iam_role`](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) resource to create the IAM role for your Grafana instance. You can find the assume role policy definition in the file `grafana-role-asume-policy.json` in this repository. 
 
-    - use resource [aws_iam_role_policy_attachment](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) to attach policy you created to the role you created. 
+    - use [`aws_iam_role_policy_attachment`](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) resource to attach policy you created to the role you created. 
 
-    - use resource [aws_iam_instance_profile](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_instance_profile) to create an instance profile. The instance profile object is not visible when doing some operations in AWS Console: it is created automatically there, but you need to create it manually when assigning a role to an EC2 instance with Terraform or AWS CLI. 
+    - use [`aws_iam_instance_profile`](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_instance_profile) resource to create an instance profile. The instance profile object is not visible when doing some operations in AWS Console: it is created automatically there, but you need to create it manually when assigning a role to an EC2 instance with Terraform or AWS CLI. 
 
-    - update existing resource `aws_instance` — add to it instance profile to assign IAM role to the instance. 
+    Update the existing resource, `aws_instance,` and add an instance profile to assign the IAM role to the instance. 
 
 4. Run the following commands to generate a Terraform execution plan in **JSON** format: 
 
