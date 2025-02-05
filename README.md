@@ -44,9 +44,11 @@ To complete this task:
 
     - use [`aws_iam_instance_profile`](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_instance_profile) resource to create an instance profile. The instance profile object is not visible when doing some operations in AWS Console: it is created automatically there, but you need to create it manually when assigning a role to an EC2 instance with Terraform or AWS CLI. 
 
-    Update the existing resource, `aws_instance,` and add an instance profile to assign the IAM role to the instance. 
+    - update the existing resource, `aws_instance,` and add an instance profile to assign the IAM role to the instance. 
 
-4. Run the following commands to generate a Terraform execution plan in **JSON** format: 
+4. After adding the code to the `main.tf`, review the file `outputs.tf` and make sure, that all output variables are valid and can output relevant values, as described in the output variable descriptions. 
+
+5. Run the following commands to generate a Terraform execution plan in **JSON** format: 
 
     ```
     terraform init
@@ -54,7 +56,7 @@ To complete this task:
     terraform show -json tfplan > tfplan.json
     ```
 
-5. Run an automated test to check yourself:
+6. Run an automated test to check yourself:
  
     ```
     pwsh ./tests/test-tf-plan.ps1
@@ -62,18 +64,18 @@ To complete this task:
 
 If any test fails, please check your task code and repeat step 4 to generate a new tfplan.json file. 
 
-6. Deploy infrastructure using the following command: 
+7. Deploy infrastructure using the following command: 
     
     ```
     terraform apply
     ```
     Make sure to collect module outputs - we will use those values in the next tasks. 
 
-7. Wait 5 minutes after the deployment and try to open that Grafana URL from the Terraform module output. When logging in for the first time, you will be prompted to change the admin password. Save the new password somewhere — you will need it for the next task. 
+8. Wait 5 minutes after the deployment and try to open that Grafana URL from the Terraform module output. When logging in for the first time, you will be prompted to change the admin password. Save the new password somewhere — you will need it for the next task. 
 
-8. In your Grafana deployment, add a new data source with the type 'CloudWatch'. The only data source parameter you need to set is the default region — use the one you have your instance deployed to. Save changes, test the connection, and be impressed😎 Your Grafana instance connected to your AWS account without you specifying any credentials at all, yet in a very secure manner.  
+9. In your Grafana deployment, add a new data source with the type 'CloudWatch'. The only data source parameter you need to set is the default region — use the one you have your instance deployed to. Save changes, test the connection, and be impressed😎 Your Grafana instance connected to your AWS account without you specifying any credentials at all, yet in a very secure manner.  
 
-9. In your CloudWatch datasource page, switch to tab **Dashboards**, import **Amazon EC2** dashboard, and click on it — you should see a dashboard populated with monitoring data. Make a screenshot of the dashboard, and attach it to the repo.
+10. In your CloudWatch datasource page, switch to tab **Dashboards**, import **Amazon EC2** dashboard, and click on it — you should see a dashboard populated with monitoring data. Make a screenshot of the dashboard, and attach it to the repo.
 ![alt text](pictures/grafana-data-source-1.png)
 
-10. Commit file `tfplan.json` and the screenshot of the EC2 dashboard, and submit your solution for review. 
+11. Commit file `tfplan.json` and the screenshot of the EC2 dashboard, and submit your solution for review. 
