@@ -3,7 +3,7 @@ data "aws_ami" "this" {
   owners      = ["amazon"]
 
   filter {
-    name = "name"
+    name   = "name"
     values = ["amzn2-ami-hvm-*-gp2"]
   }
 
@@ -37,8 +37,8 @@ resource "aws_instance" "this" {
   instance_type = "t2.micro"
 
   associate_public_ip_address = true
-  subnet_id     = var.subnet_id
-  vpc_security_group_ids = [var.security_group_id]
+  subnet_id                   = var.subnet_id
+  vpc_security_group_ids      = [var.security_group_id]
 
   key_name = aws_key_pair.this.key_name
 
@@ -47,17 +47,35 @@ resource "aws_instance" "this" {
   }
 
   user_data = file("./install-grafana.sh")
+
+  # Added IAM Instance Profile
+  iam_instance_profile = aws_iam_instance_profile.this.name
 }
 
+# 1 - create policy
 
-##############################################
-######## Write your code here -> #############
-##############################################
+resource "aws_iam_policy" "this" {
+  name        = "grafana-iam-policy"
+  description = "Policy for Grafana to read CloudWatch metrics and logs"
+  policy      = file("grafana-policy.json")
+}
 
-# 1 - create policy 
+# 2 - create role
 
-# 2 - create role 
+resource "aws_iam_role" "grafana" {
+  name               = "grafana"
+  assume_role_policy = file("grafana-role-asume-policy.json")
+}
 
-# 3 - create policy to role attachment 
+# 3 - create policy to role attachment
 
-# 4 - create instance profile 
+resource "aws_iam_role_policy_attachment" "this" {
+  role       = aws_iam_role.grafana.name
+  policy_arn = aws_iam_policy.this.arn
+}
+# 4 - create instance profile
+
+resource "aws_iam_instance_profile" "this" {
+  name = "grafana-iam-instance-profile"
+  role = aws_iam_role.grafana.name
+}
