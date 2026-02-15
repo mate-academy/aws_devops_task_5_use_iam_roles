@@ -25,7 +25,7 @@ data "aws_ami" "this" {
 
 resource "aws_key_pair" "this" {
   key_name   = "aws-grafana-lab-key"
-  public_key = file("~/.ssh/id_rsa.pub")
+  public_key = file("~/.ssh/terraform_key.pub")
 
   tags = {
     Name = "mate-aws-grafana-lab"
@@ -42,6 +42,8 @@ resource "aws_instance" "this" {
 
   key_name = aws_key_pair.this.key_name
 
+  iam_instance_profile = aws_iam_instance_profile.grafana.name
+
   tags = {
     Name = "mate-aws-grafana-lab"
   }
@@ -55,9 +57,39 @@ resource "aws_instance" "this" {
 ##############################################
 
 # 1 - create policy 
+resource "aws_iam_policy" "grafana" {
+  name        = "grafana-cloudwatch-policy"
+  path        = "/"
+  description = "Policy for Grafana to read CloudWatch metrics and logs"
+
+  # Terraform's "jsonencode" function converts a
+  # Terraform expression result to valid JSON syntax.
+  policy = file("${path.module}/grafana-policy.json")
+}
 
 # 2 - create role 
 
+resource "aws_iam_role" "grafana" {
+  name = "grafana-ec2-role"
+
+  # Terraform's "jsonencode" function converts a
+  # Terraform expression result to valid JSON syntax.
+  assume_role_policy = file("${path.module}/grafana-role-asume-policy.json")
+
+  tags = {
+    tag-key = "tag-value"
+  }
+}
+
 # 3 - create policy to role attachment 
+resource "aws_iam_role_policy_attachment" "grafana_attach" {
+  role       = aws_iam_role.grafana.name
+  policy_arn = aws_iam_policy.grafana.arn
+}
 
 # 4 - create instance profile 
+
+resource "aws_iam_instance_profile" "grafana" {
+  name = "grafana-ec2-instance-profile"
+  role = aws_iam_role.grafana.name
+}
