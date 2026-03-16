@@ -1,10 +1,10 @@
 data "aws_ami" "this" {
   most_recent = true
-  owners      = ["amazon"]
+  owners      = var.ami_owners
 
   filter {
-    name = "name"
-    values = ["amzn2-ami-hvm-*-gp2"]
+    name   = "name"
+    values = [var.ami_name_pattern]
   }
 
   filter {
@@ -24,40 +24,57 @@ data "aws_ami" "this" {
 }
 
 resource "aws_key_pair" "this" {
-  key_name   = "aws-grafana-lab-key"
-  public_key = file("~/.ssh/id_rsa.pub")
+  key_name   = var.key_pair_name
+  public_key = file(var.public_key_path)
 
   tags = {
-    Name = "mate-aws-grafana-lab"
+    Name = var.resource_name_tag
   }
 }
 
 resource "aws_instance" "this" {
   ami           = data.aws_ami.this.id
-  instance_type = "t2.micro"
+  instance_type = var.instance_type
 
   associate_public_ip_address = true
-  subnet_id     = var.subnet_id
-  vpc_security_group_ids = [var.security_group_id]
+  subnet_id                   = var.subnet_id
+  vpc_security_group_ids      = [var.security_group_id]
+  iam_instance_profile        = aws_iam_instance_profile.instance_profile.name
 
   key_name = aws_key_pair.this.key_name
 
   tags = {
-    Name = "mate-aws-grafana-lab"
+    Name = var.resource_name_tag
   }
 
-  user_data = file("./install-grafana.sh")
+  user_data = file(var.user_data_path)
 }
 
+resource "aws_iam_policy" "policy" {
+  name        = "grafana_policy"
+  path        = "/"
+  description = "My test policy"
 
-##############################################
-######## Write your code here -> #############
-##############################################
+  policy = file("./grafana-policy.json")
+}
 
-# 1 - create policy 
+resource "aws_iam_role" "role" {
+  name = "grafana_role"
 
-# 2 - create role 
+  assume_role_policy = file("grafana-role-assume-policy.json")
 
-# 3 - create policy to role attachment 
+  tags = {
+    tag-key = "grafana_role"
+  }
+}
 
-# 4 - create instance profile 
+resource "aws_iam_role_policy_attachment" "test-attach" {
+  role       = aws_iam_role.role.name
+  policy_arn = aws_iam_policy.policy.arn
+}
+
+resource "aws_iam_instance_profile" "instance_profile" {
+  name = "grafana_instance_profile"
+  role = aws_iam_role.role.name
+}
+
