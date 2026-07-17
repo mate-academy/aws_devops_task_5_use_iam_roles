@@ -3,7 +3,7 @@ data "aws_ami" "this" {
   owners      = ["amazon"]
 
   filter {
-    name = "name"
+    name   = "name"
     values = ["amzn2-ami-hvm-*-gp2"]
   }
 
@@ -37,8 +37,8 @@ resource "aws_instance" "this" {
   instance_type = "t2.micro"
 
   associate_public_ip_address = true
-  subnet_id     = var.subnet_id
-  vpc_security_group_ids = [var.security_group_id]
+  subnet_id                   = var.subnet_id
+  vpc_security_group_ids      = [var.security_group_id]
 
   key_name = aws_key_pair.this.key_name
 
@@ -46,7 +46,8 @@ resource "aws_instance" "this" {
     Name = "mate-aws-grafana-lab"
   }
 
-  user_data = file("./install-grafana.sh")
+  iam_instance_profile = aws_iam_instance_profile.grafana_profile.name
+  user_data            = file("./install-grafana.sh")
 }
 
 
@@ -55,9 +56,35 @@ resource "aws_instance" "this" {
 ##############################################
 
 # 1 - create policy 
+resource "aws_iam_policy" "grafana_policy" {
+  name        = "grafana_policy"
+  path        = "/"
+  description = "Grafana policy"
 
+
+  policy = file("./grafana-policy.json")
+
+  tags = {
+    name = "mate-aws-grafana-lab"
+  }
+}
 # 2 - create role 
+resource "aws_iam_role" "grafana" {
+  name = "grafana_role"
 
+  assume_role_policy = file("./grafana-role-asume-policy.json")
+
+  tags = {
+    name = "mate-aws-grafana-lab"
+  }
+}
 # 3 - create policy to role attachment 
-
+resource "aws_iam_role_policy_attachment" "grafana-attach" {
+  role       = aws_iam_role.grafana.name
+  policy_arn = aws_iam_policy.grafana_policy.arn
+}
 # 4 - create instance profile 
+resource "aws_iam_instance_profile" "grafana_profile" {
+  name = "grafana_profile"
+  role = aws_iam_role.grafana.name
+}
