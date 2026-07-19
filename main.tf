@@ -3,7 +3,7 @@ data "aws_ami" "this" {
   owners      = ["amazon"]
 
   filter {
-    name = "name"
+    name   = "name"
     values = ["amzn2-ami-hvm-*-gp2"]
   }
 
@@ -34,13 +34,14 @@ resource "aws_key_pair" "this" {
 
 resource "aws_instance" "this" {
   ami           = data.aws_ami.this.id
-  instance_type = "t2.micro"
+  instance_type = "t3.micro"
 
   associate_public_ip_address = true
-  subnet_id     = var.subnet_id
-  vpc_security_group_ids = [var.security_group_id]
+  subnet_id                   = var.subnet_id
+  vpc_security_group_ids      = [var.security_group_id]
 
-  key_name = aws_key_pair.this.key_name
+  key_name             = aws_key_pair.this.key_name
+  iam_instance_profile = aws_iam_instance_profile.grafana_profile.name
 
   tags = {
     Name = "mate-aws-grafana-lab"
@@ -54,10 +55,93 @@ resource "aws_instance" "this" {
 ######## Write your code here -> #############
 ##############################################
 
-# 1 - create policy 
+# 1 - create policy
+resource "aws_iam_policy" "policy" {
+  name        = "grafana_policy"
+  path        = "/"
+  description = "Policy necessary for Grafana to read metrics and logs from CloudWatch"
 
-# 2 - create role 
+  # Terraform's "jsonencode" function converts a
+  # Terraform expression result to valid JSON syntax.
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        "Sid" : "AllowReadingMetricsFromCloudWatch",
+        "Effect" : "Allow",
+        "Action" : [
+          "cloudwatch:DescribeAlarmsForMetric",
+          "cloudwatch:DescribeAlarmHistory",
+          "cloudwatch:DescribeAlarms",
+          "cloudwatch:ListMetrics",
+          "cloudwatch:GetMetricData",
+          "cloudwatch:GetInsightRuleReport"
+        ],
+        "Resource" : "*"
+      },
+      {
+        "Sid" : "AllowReadingResourceMetricsFromPerformanceInsights",
+        "Effect" : "Allow",
+        "Action" : "pi:GetResourceMetrics",
+        "Resource" : "*"
+      },
+      {
+        "Sid" : "AllowReadingLogsFromCloudWatch",
+        "Effect" : "Allow",
+        "Action" : [
+          "logs:DescribeLogGroups",
+          "logs:GetLogGroupFields",
+          "logs:StartQuery",
+          "logs:StopQuery",
+          "logs:GetQueryResults",
+          "logs:GetLogEvents"
+        ],
+        "Resource" : "*"
+      },
+      {
+        "Sid" : "AllowReadingTagsInstancesRegionsFromEC2",
+        "Effect" : "Allow",
+        "Action" : ["ec2:DescribeTags", "ec2:DescribeInstances", "ec2:DescribeRegions"],
+        "Resource" : "*"
+      },
+      {
+        "Sid" : "AllowReadingResourcesForTags",
+        "Effect" : "Allow",
+        "Action" : "tag:GetResources",
+        "Resource" : "*"
+      }
+    ]
+  })
+}
 
-# 3 - create policy to role attachment 
+# 2 - create role
+resource "aws_iam_role" "grafana" {
+  name = "grafana_role"
 
+  # Terraform's "jsonencode" function converts a
+  # Terraform expression result to valid JSON syntax.
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        "Action" : "sts:AssumeRole",
+        "Effect" : "Allow",
+        "Sid" : "",
+        "Principal" : {
+          "Service" : "ec2.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+# 3 - create policy to role attachment
+resource "aws_iam_role_policy_attachment" "attach" {
+  role       = aws_iam_role.grafana.name
+  policy_arn = aws_iam_policy.policy.arn
+}
 # 4 - create instance profile 
+resource "aws_iam_instance_profile" "grafana_profile" {
+  name = "grafana_profile"
+  role = aws_iam_role.grafana.name
+}
