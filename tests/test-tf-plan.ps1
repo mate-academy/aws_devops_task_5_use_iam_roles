@@ -28,7 +28,7 @@ if ($instance  -and ($instance.Count -eq 1 )) {
 } else { 
     throw "`u{1F635} Unable to find EC2 instance resource. Please make sure that you added the 'aws_instance' resource to the configuratoin and try again. "
 }
-if ($instance.change.after.instance_type -eq "t2.micro") { 
+if ($instance.change.after.instance_type -eq "t3.micro") { 
     Write-Output "`u{2705} Checking instance type - OK. "
 } else { 
     throw "`u{1F635} Unable to validate instance type. Please make sure that you used t2.micro instance type and try again. "
