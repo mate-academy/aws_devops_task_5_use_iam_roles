@@ -3,7 +3,7 @@ data "aws_ami" "this" {
   owners      = ["amazon"]
 
   filter {
-    name = "name"
+    name   = "name"
     values = ["amzn2-ami-hvm-*-gp2"]
   }
 
@@ -25,7 +25,7 @@ data "aws_ami" "this" {
 
 resource "aws_key_pair" "this" {
   key_name   = "aws-grafana-lab-key"
-  public_key = file("~/.ssh/id_rsa.pub")
+  public_key = file("~/.ssh/mate-aws-grafana.pub")
 
   tags = {
     Name = "mate-aws-grafana-lab"
@@ -37,27 +37,37 @@ resource "aws_instance" "this" {
   instance_type = "t2.micro"
 
   associate_public_ip_address = true
-  subnet_id     = var.subnet_id
-  vpc_security_group_ids = [var.security_group_id]
+  subnet_id                   = var.subnet_id
+  vpc_security_group_ids      = [var.security_group_id]
 
-  key_name = aws_key_pair.this.key_name
+  key_name             = aws_key_pair.this.key_name
+  iam_instance_profile = aws_iam_instance_profile.grafana.name
+
+  user_data = file("${path.module}/install-grafana.sh")
 
   tags = {
     Name = "mate-aws-grafana-lab"
   }
 
-  user_data = file("./install-grafana.sh")
 }
 
+resource "aws_iam_policy" "grafana" {
+  name        = "mate-aws-grafana-cloudwatch-policy"
+  description = "Allows Grafana to read CloudWatch metrics and logs"
+  policy      = file("${path.module}/grafana-policy.json")
+}
 
-##############################################
-######## Write your code here -> #############
-##############################################
+resource "aws_iam_role" "grafana" {
+  name               = "mate-aws-grafana-role"
+  assume_role_policy = file("${path.module}/grafana-role-asume-policy.json")
+}
 
-# 1 - create policy 
+resource "aws_iam_role_policy_attachment" "grafana" {
+  role       = aws_iam_role.grafana.name
+  policy_arn = aws_iam_policy.grafana.arn
+}
 
-# 2 - create role 
-
-# 3 - create policy to role attachment 
-
-# 4 - create instance profile 
+resource "aws_iam_instance_profile" "grafana" {
+  name = "mate-aws-grafana-instance-profile"
+  role = aws_iam_role.grafana.name
+}
