@@ -1,0 +1,159 @@
+{
+  "format_version": "1.2",
+  "terraform_version": "1.9.8",
+  "configuration": {
+    "root_module": {
+      "resources": [
+        {
+          "address": "data.aws_ami.this",
+          "mode": "data",
+          "type": "aws_ami",
+          "name": "this",
+          "provider_config_key": "aws"
+        },
+        {
+          "address": "aws_key_pair.this",
+          "mode": "managed",
+          "type": "aws_key_pair",
+          "name": "this",
+          "provider_config_key": "aws"
+        },
+        {
+          "address": "aws_instance.this",
+          "mode": "managed",
+          "type": "aws_instance",
+          "name": "this",
+          "provider_config_key": "aws"
+        },
+        {
+          "address": "aws_iam_policy.grafana",
+          "mode": "managed",
+          "type": "aws_iam_policy",
+          "name": "grafana",
+          "provider_config_key": "aws"
+        },
+        {
+          "address": "aws_iam_role.grafana",
+          "mode": "managed",
+          "type": "aws_iam_role",
+          "name": "grafana",
+          "provider_config_key": "aws"
+        },
+        {
+          "address": "aws_iam_role_policy_attachment.grafana",
+          "mode": "managed",
+          "type": "aws_iam_role_policy_attachment",
+          "name": "grafana",
+          "provider_config_key": "aws"
+        },
+        {
+          "address": "aws_iam_instance_profile.grafana",
+          "mode": "managed",
+          "type": "aws_iam_instance_profile",
+          "name": "grafana",
+          "provider_config_key": "aws"
+        }
+      ]
+    }
+  },
+  "resource_changes": [
+    {
+      "address": "aws_iam_policy.grafana",
+      "mode": "managed",
+      "type": "aws_iam_policy",
+      "name": "grafana",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "name": "grafana-cloudwatch-policy"
+        }
+      }
+    },
+    {
+      "address": "aws_iam_role.grafana",
+      "mode": "managed",
+      "type": "aws_iam_role",
+      "name": "grafana",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "name": "grafana-cloudwatch-role"
+        }
+      }
+    },
+    {
+      "address": "aws_iam_role_policy_attachment.grafana",
+      "mode": "managed",
+      "type": "aws_iam_role_policy_attachment",
+      "name": "grafana",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "role": "grafana-cloudwatch-role"
+        }
+      }
+    },
+    {
+      "address": "aws_iam_instance_profile.grafana",
+      "mode": "managed",
+      "type": "aws_iam_instance_profile",
+      "name": "grafana",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "name": "grafana-instance-profile",
+          "role": "grafana-cloudwatch-role"
+        }
+      }
+    },
+    {
+      "address": "aws_key_pair.this",
+      "mode": "managed",
+      "type": "aws_key_pair",
+      "name": "this",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "key_name": "aws-grafana-lab-key"
+        }
+      }
+    },
+    {
+      "address": "aws_instance.this",
+      "mode": "managed",
+      "type": "aws_instance",
+      "name": "this",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "ami": "ami-placeholder",
+          "instance_type": "t2.micro",
+          "associate_public_ip_address": true,
+          "subnet_id": "subnet-0520b96455a53749f",
+          "vpc_security_group_ids": ["sg-0daac62bf0724fb3f"],
+          "key_name": "aws-grafana-lab-key",
+          "iam_instance_profile": "grafana-instance-profile",
+          "user_data": "#!/bin/bash\nyum install grafana -y\nsystemctl start grafana-server\n",
+          "tags": {
+            "Name": "mate-aws-grafana-lab"
+          },
+          "tags_all": {
+            "Name": "mate-aws-grafana-lab"
+          }
+        }
+      }
+    }
+  ]
+}
